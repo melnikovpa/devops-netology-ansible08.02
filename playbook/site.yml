@@ -8,6 +8,7 @@
         tags: java
       - name: Upload .tar.gz file containing binaries from local storage
         copy:
+          mode: 0644
           src: "{{ java_oracle_jdk_package }}"
           dest: "/tmp/jdk-{{ java_jdk_version }}.tar.gz"
         register: download_java_binaries
@@ -16,12 +17,14 @@
       - name: Ensure installation dir exists
         become: true
         file:
+          mode: 0644
           state: directory
           path: "{{ java_home }}"
         tags: java
       - name: Extract java in the installation directory
         become: true
         unarchive:
+          mode: 0644
           copy: false
           src: "/tmp/jdk-{{ java_jdk_version }}.tar.gz"
           dest: "{{ java_home }}"
@@ -33,6 +36,7 @@
       - name: Export environment variables
         become: true
         template:
+          mode: 0644
           src: jdk.sh.j2
           dest: /etc/profile.d/jdk.sh
         tags: java
@@ -51,12 +55,14 @@
         tags: elastic
       - name: Create directrory for Elasticsearch
         file:
+          mode: 0644
           state: directory
           path: "{{ elastic_home }}"
         tags: elastic
       - name: Extract Elasticsearch in the installation directory
         become: true
         unarchive:
+          mode: 0644
           copy: false
           src: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
           dest: "{{ elastic_home }}"
@@ -68,6 +74,42 @@
       - name: Set environment Elastic
         become: yes
         template:
+          mode: 0644
           src: templates/elk.sh.j2
           dest: /etc/profile.d/elk.sh
+        tags: elastic
+  - name: Install Kibana
+    hosts: elasticsearch
+    tasks:
+      - name: Upload tar.gz Kibana from remote URL
+        get_url:
+          url: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+          dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+          mode: 0755
+          timeout: 60
+          force: true
+        tags: kibana
+      - name: Create dirrectory fo kibana
+        file:
+          mode: 0644
+          state: directory
+          path: "{{ kibana_home }}"
+        tags: kibana
+      - name: Extract Kibana in the installation directory
+        become: true
+        unarchive:
+          mode: 0644
+          copy: false
+          src: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+          dest: "{{ kibana_home }}"
+          creates: "{{ kibana_home }}/bin/kibana"
+        tags:
+          - skip_ansible_lint
+          - kibana
+      - name: Set environment Kibana
+        become: yes
+        template:
+          mode: 0644
+          src: templates/kibana.sh.j2
+          dest: /etc/profile.d/kibana.sh
         tags: elastic

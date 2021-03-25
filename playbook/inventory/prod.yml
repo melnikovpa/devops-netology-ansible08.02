@@ -3,4 +3,5 @@
     hosts:
       localhost:
         ansible_connection: ssh
-        ansible_user: root
+        ansible_ssh_host: 192.168.64.3
+        ansible_user: ubuntu
